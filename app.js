@@ -136,9 +136,10 @@ function buildTreeByCollection(data) {
             const keyword = item.keyword || 'Sans titre';
             const status = item.status || '';
             const searchVolume = item.search_volume || '';
+            const typology = item.typology || '';
             const productNode = new TreeNode(
                 `📄 ${keyword}`,
-                { type: 'product', status: status, searchVolume: searchVolume, item: item }
+                { type: 'product', status: status, searchVolume: searchVolume, typology: typology, item: item }
             );
             collectionNode.addChild(productNode);
         });
@@ -178,9 +179,10 @@ function buildTreeByTopic(data) {
             const keyword = item.keyword || 'Sans titre';
             const status = item.status || '';
             const searchVolume = item.search_volume || '';
+            const typology = item.typology || '';
             const productNode = new TreeNode(
                 `📄 ${keyword}`,
-                { type: 'product', status: status, searchVolume: searchVolume, item: item }
+                { type: 'product', status: status, searchVolume: searchVolume, typology: typology, item: item }
             );
             topicNode.addChild(productNode);
         });
@@ -203,10 +205,11 @@ function buildTreeByParent(data) {
         const keyword = row.keyword || 'Sans titre';
         const status = row.status || '';
         const searchVolume = row.search_volume || '';
+        const typology = row.typology || '';
 
         const productNode = new TreeNode(
             `📄 ${keyword}`,
-            { type: 'product', status: status, searchVolume: searchVolume, item: row }
+            { type: 'product', status: status, searchVolume: searchVolume, typology: typology, item: row }
         );
 
         if (parents.length > 0) {
@@ -358,6 +361,22 @@ function renderTree(node, isRoot = true) {
         count.className = 'node-count';
         count.textContent = `(${node.data.count})`;
         content.appendChild(count);
+    }
+
+    // Add typology badge if applicable
+    if (node.data && node.data.typology && node.data.typology.trim() !== '') {
+        const typology = document.createElement('span');
+        typology.className = `node-typology ${node.data.typology}`;
+        const typologyLabels = {
+            'product': '🛒 Produit',
+            'guide': '📖 Guide',
+            'category': '📂 Catégorie',
+            'blog': '✍️ Blog',
+            'landing': '🎯 Landing',
+            'service': '⚙️ Service'
+        };
+        typology.textContent = typologyLabels[node.data.typology] || node.data.typology;
+        content.appendChild(typology);
     }
 
     // Add status badge if applicable

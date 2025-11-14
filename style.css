@@ -349,6 +349,46 @@ header h1 {
     color: #1e40af;
 }
 
+.node-typology {
+    display: inline-block;
+    padding: 0.125rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.node-typology.product {
+    background: #fce7f3;
+    color: #9f1239;
+}
+
+.node-typology.guide {
+    background: #ddd6fe;
+    color: #5b21b6;
+}
+
+.node-typology.category {
+    background: #fed7aa;
+    color: #9a3412;
+}
+
+.node-typology.blog {
+    background: #bfdbfe;
+    color: #1e40af;
+}
+
+.node-typology.landing {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.node-typology.service {
+    background: #fef3c7;
+    color: #92400e;
+}
+
 .node-children {
     margin-left: 1.5rem;
     border-left: 2px solid var(--border-color);
