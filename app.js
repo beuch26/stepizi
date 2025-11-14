@@ -1,12 +1,22 @@
 // Global state
 let csvData = [];
+let filteredData = [];
 let currentView = 'collection';
+let currentSite = 'all';
 let currentTree = null;
+
+// Site mapping
+const siteNames = {
+    'b3a3c7aa-0466-4a9c-b827-7c5fd3ca2ac6': 'Smyles',
+    'ce08ea7b-305e-4880-b8e4-cdc8f325e902': 'Le Cartel Clothing',
+    '0ff6bbe4-1932-4a5b-9ad6-f8a2fdf70ae8': 'Moom Paris'
+};
 
 // DOM Elements
 const csvFileInput = document.getElementById('csvFile');
 const fileNameSpan = document.getElementById('fileName');
 const treeContainer = document.getElementById('treeContainer');
+const siteSelector = document.getElementById('siteSelector');
 const viewButtons = document.querySelectorAll('.view-btn');
 const expandAllBtn = document.getElementById('expandAll');
 const collapseAllBtn = document.getElementById('collapseAll');
@@ -578,27 +588,28 @@ function updateStats(data) {
 
 // Visualize tree
 function visualizeTree(viewType) {
-    if (csvData.length === 0) return;
+    const dataToUse = filteredData.length > 0 ? filteredData : csvData;
+    if (dataToUse.length === 0) return;
 
     let tree;
     switch (viewType) {
         case 'collection':
-            tree = buildTreeByCollection(csvData);
+            tree = buildTreeByCollection(dataToUse);
             break;
         case 'topic':
-            tree = buildTreeByTopic(csvData);
+            tree = buildTreeByTopic(dataToUse);
             break;
         case 'hierarchy':
-            tree = buildTreeByHierarchy(csvData);
+            tree = buildTreeByHierarchy(dataToUse);
             break;
         case 'parent':
-            tree = buildTreeByParent(csvData);
+            tree = buildTreeByParent(dataToUse);
             break;
         case 'stats':
-            tree = buildStatsTree(csvData);
+            tree = buildStatsTree(dataToUse);
             break;
         default:
-            tree = buildTreeByCollection(csvData);
+            tree = buildTreeByCollection(dataToUse);
     }
 
     currentTree = tree;
@@ -607,6 +618,58 @@ function visualizeTree(viewType) {
 }
 
 // File upload handler
+// Detect and create site buttons
+function detectSites(data) {
+    const sites = new Set();
+    data.forEach(row => {
+        if (row.client_id && row.client_id.trim()) {
+            sites.add(row.client_id.trim());
+        }
+    });
+    return Array.from(sites);
+}
+
+function createSiteButtons(sites) {
+    siteSelector.innerHTML = '<button class="view-btn active" data-site="all"><span>🌐</span> Tous les sites</button>';
+
+    sites.forEach(siteId => {
+        const siteName = siteNames[siteId] || siteId;
+        const button = document.createElement('button');
+        button.className = 'view-btn';
+        button.dataset.site = siteId;
+        button.innerHTML = `<span>🏢</span> ${siteName}`;
+        siteSelector.appendChild(button);
+
+        button.addEventListener('click', () => {
+            document.querySelectorAll('#siteSelector .view-btn').forEach(b => b.classList.remove('active'));
+            button.classList.add('active');
+            currentSite = siteId;
+            filterDataBySite();
+            updateStats(filteredData);
+            visualizeTree(currentView);
+        });
+    });
+
+    // Add event listener for "all sites" button
+    const allButton = siteSelector.querySelector('[data-site="all"]');
+    allButton.addEventListener('click', () => {
+        document.querySelectorAll('#siteSelector .view-btn').forEach(b => b.classList.remove('active'));
+        allButton.classList.add('active');
+        currentSite = 'all';
+        filterDataBySite();
+        updateStats(filteredData);
+        visualizeTree(currentView);
+    });
+}
+
+function filterDataBySite() {
+    if (currentSite === 'all') {
+        filteredData = csvData;
+    } else {
+        filteredData = csvData.filter(row => row.client_id && row.client_id.trim() === currentSite);
+    }
+}
+
 csvFileInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -617,7 +680,18 @@ csvFileInput.addEventListener('change', (e) => {
     reader.onload = (e) => {
         const text = e.target.result;
         csvData = parseCSV(text);
-        updateStats(csvData);
+
+        // Detect sites and create filter buttons
+        const sites = detectSites(csvData);
+        if (sites.length > 0) {
+            createSiteButtons(sites);
+        }
+
+        // Reset to all sites
+        currentSite = 'all';
+        filterDataBySite();
+
+        updateStats(filteredData);
         visualizeTree(currentView);
     };
     reader.readAsText(file);
