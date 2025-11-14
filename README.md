@@ -2,6 +2,21 @@
 
 Visualiseur d'arbre CSV pour l'architecture de site web. Ce programme permet de visualiser la structure hiérarchique de votre site à partir d'un fichier CSV.
 
+## 🎨 Deux Modes d'Utilisation
+
+### 1. Interface Web Visuelle (Recommandé)
+Une interface web moderne et interactive avec :
+- ✅ Glisser-déposer de fichiers CSV
+- ✅ Basculement entre différentes vues en un clic
+- ✅ Recherche en temps réel
+- ✅ Déplier/Replier les nœuds
+- ✅ Export en multiples formats (TXT, JSON, HTML)
+- ✅ Statistiques en temps réel
+- ✅ Design moderne et responsive
+
+### 2. Interface Ligne de Commande
+Programme Python pour une utilisation en terminal
+
 ## Fonctionnalités
 
 Le programme offre **4 vues différentes** pour analyser votre architecture:
@@ -18,7 +33,25 @@ Affiche la hiérarchie basée sur les relations parent-enfant (colonne `parent`)
 ### 4. Vue Statistiques
 Affiche des statistiques sur votre contenu (typologie, statut, indexation)
 
-## Installation
+## 🚀 Démarrage Rapide
+
+### Interface Web (Recommandé)
+
+1. Ouvrez simplement `index.html` dans votre navigateur
+2. Glissez-déposez votre fichier CSV ou cliquez sur "Choisir un fichier CSV"
+3. Explorez vos données avec les différentes vues !
+
+**Aucune installation requise** - Fonctionne entièrement dans le navigateur.
+
+Vous pouvez aussi lancer un serveur local :
+```bash
+# Avec Python
+python3 -m http.server 8000
+
+# Puis ouvrez http://localhost:8000 dans votre navigateur
+```
+
+## Installation (CLI)
 
 Aucune dépendance externe requise ! Le programme utilise uniquement la bibliothèque standard Python.
 
@@ -131,16 +164,35 @@ Le code est structuré de manière modulaire et peut être facilement étendu po
 - Personnaliser l'affichage
 - Exporter vers d'autres formats (JSON, HTML, etc.)
 
-## Structure du code
+## Structure du Projet
 
-- `TreeNode`: Classe représentant un nœud dans l'arbre
-- `CSVTreeVisualizer`: Classe principale contenant toutes les méthodes de visualisation
-  - `load_csv()`: Charge le fichier CSV
-  - `build_tree_by_collection()`: Construit l'arbre par collection
-  - `build_tree_by_topic()`: Construit l'arbre par topic
-  - `build_tree_by_parent_relationships()`: Construit l'arbre par relations parent
-  - `build_statistics_tree()`: Génère les statistiques
-  - `print_tree()`: Affiche l'arbre de manière récursive
+### Fichiers Interface Web
+- **`index.html`** - Interface web principale
+- **`style.css`** - Styles CSS modernes et responsive
+- **`app.js`** - Logique JavaScript pour le parsing CSV et la visualisation
+
+### Fichiers CLI
+- **`csv_tree_visualizer.py`** - Programme Python en ligne de commande
+  - `TreeNode`: Classe représentant un nœud dans l'arbre
+  - `CSVTreeVisualizer`: Classe principale contenant toutes les méthodes de visualisation
+    - `load_csv()`: Charge le fichier CSV
+    - `build_tree_by_collection()`: Construit l'arbre par collection
+    - `build_tree_by_topic()`: Construit l'arbre par topic
+    - `build_tree_by_parent_relationships()`: Construit l'arbre par relations parent
+    - `build_statistics_tree()`: Génère les statistiques
+    - `print_tree()`: Affiche l'arbre de manière récursive
+
+### Données d'exemple
+- **`sample_data.csv`** - Fichier CSV d'exemple pour tester l'application
+
+## Captures d'écran
+
+L'interface web inclut :
+- 🎨 Design moderne avec dégradé violet
+- 📊 Barre de statistiques en temps réel
+- 🔍 Recherche avec surlignage
+- 💾 Export multiples formats
+- 📱 Responsive pour mobile et desktop
 
 ## Licence
 

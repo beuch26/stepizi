@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV Tree Visualizer - Interface Visuelle</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌳 Visualiseur d'Arbre CSV</h1>
+            <p class="subtitle">Visualisez l'architecture de votre site web</p>
+        </header>
+
+        <div class="controls-panel">
+            <div class="upload-section">
+                <label for="csvFile" class="upload-label">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    <span id="fileName">Choisir un fichier CSV</span>
+                </label>
+                <input type="file" id="csvFile" accept=".csv" hidden>
+            </div>
+
+            <div class="view-selector">
+                <label>Type de vue :</label>
+                <div class="button-group">
+                    <button class="view-btn active" data-view="collection">
+                        <span>📁</span> Collections
+                    </button>
+                    <button class="view-btn" data-view="topic">
+                        <span>🏷️</span> Topics
+                    </button>
+                    <button class="view-btn" data-view="parent">
+                        <span>🔗</span> Relations
+                    </button>
+                    <button class="view-btn" data-view="stats">
+                        <span>📊</span> Statistiques
+                    </button>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button id="expandAll" class="action-btn">
+                    <span>➕</span> Tout Déplier
+                </button>
+                <button id="collapseAll" class="action-btn">
+                    <span>➖</span> Tout Replier
+                </button>
+                <button id="exportBtn" class="action-btn primary">
+                    <span>💾</span> Exporter
+                </button>
+            </div>
+        </div>
+
+        <div class="stats-bar" id="statsBar" style="display: none;">
+            <div class="stat-item">
+                <span class="stat-label">Total:</span>
+                <span class="stat-value" id="totalItems">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Collections:</span>
+                <span class="stat-value" id="totalCollections">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Publiés:</span>
+                <span class="stat-value" id="publishedItems">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Indexés:</span>
+                <span class="stat-value" id="indexedItems">0</span>
+            </div>
+        </div>
+
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="🔍 Rechercher dans l'arbre..." />
+            <button id="clearSearch" class="clear-btn" style="display: none;">✕</button>
+        </div>
+
+        <div class="tree-container" id="treeContainer">
+            <div class="empty-state">
+                <div class="empty-icon">📂</div>
+                <h2>Aucun fichier chargé</h2>
+                <p>Importez un fichier CSV pour visualiser l'architecture de votre site</p>
+            </div>
+        </div>
+
+        <div class="export-modal" id="exportModal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Exporter l'arbre</h3>
+                    <button class="close-modal" id="closeModal">✕</button>
+                </div>
+                <div class="modal-body">
+                    <button class="export-option" id="exportText">
+                        <span>📄</span>
+                        <div>
+                            <strong>Format Texte</strong>
+                            <p>Exporter en format texte ASCII</p>
+                        </div>
+                    </button>
+                    <button class="export-option" id="exportJSON">
+                        <span>📋</span>
+                        <div>
+                            <strong>Format JSON</strong>
+                            <p>Exporter la structure en JSON</p>
+                        </div>
+                    </button>
+                    <button class="export-option" id="exportHTML">
+                        <span>🌐</span>
+                        <div>
+                            <strong>Format HTML</strong>
+                            <p>Exporter en page HTML standalone</p>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
