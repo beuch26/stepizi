@@ -339,6 +339,16 @@ header h1 {
     color: #92400e;
 }
 
+.node-volume {
+    display: inline-block;
+    padding: 0.125rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: #dbeafe;
+    color: #1e40af;
+}
+
 .node-children {
     margin-left: 1.5rem;
     border-left: 2px solid var(--border-color);

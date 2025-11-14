@@ -135,9 +135,10 @@ function buildTreeByCollection(data) {
         items.forEach(item => {
             const keyword = item.keyword || 'Sans titre';
             const status = item.status || '';
+            const searchVolume = item.search_volume || '';
             const productNode = new TreeNode(
                 `📄 ${keyword}`,
-                { type: 'product', status: status, item: item }
+                { type: 'product', status: status, searchVolume: searchVolume, item: item }
             );
             collectionNode.addChild(productNode);
         });
@@ -176,9 +177,10 @@ function buildTreeByTopic(data) {
         items.forEach(item => {
             const keyword = item.keyword || 'Sans titre';
             const status = item.status || '';
+            const searchVolume = item.search_volume || '';
             const productNode = new TreeNode(
                 `📄 ${keyword}`,
-                { type: 'product', status: status, item: item }
+                { type: 'product', status: status, searchVolume: searchVolume, item: item }
             );
             topicNode.addChild(productNode);
         });
@@ -200,10 +202,11 @@ function buildTreeByParent(data) {
         const parents = parseJSONField(row.parent || '');
         const keyword = row.keyword || 'Sans titre';
         const status = row.status || '';
+        const searchVolume = row.search_volume || '';
 
         const productNode = new TreeNode(
             `📄 ${keyword}`,
-            { type: 'product', status: status, item: row }
+            { type: 'product', status: status, searchVolume: searchVolume, item: row }
         );
 
         if (parents.length > 0) {
@@ -294,6 +297,31 @@ function buildStatsTree(data) {
     });
     root.addChild(indexedNode);
 
+    // Search Volume Statistics
+    const volumeStats = data.filter(row => row.search_volume && row.search_volume.trim() !== '');
+    const volumeNode = new TreeNode('Volumes de Recherche');
+
+    volumeNode.addChild(new TreeNode(`Mots-clés avec volume: ${volumeStats.length}`));
+    volumeNode.addChild(new TreeNode(`Sans volume: ${data.length - volumeStats.length}`));
+
+    if (volumeStats.length > 0) {
+        // Calculate total and average volume
+        const volumes = volumeStats.map(row => parseInt(row.search_volume) || 0);
+        const totalVolume = volumes.reduce((sum, vol) => sum + vol, 0);
+        const avgVolume = Math.round(totalVolume / volumes.length);
+        const maxVolume = Math.max(...volumes);
+        const minVolume = Math.min(...volumes.filter(v => v > 0));
+
+        volumeNode.addChild(new TreeNode(`Volume total: ${totalVolume.toLocaleString()}`));
+        volumeNode.addChild(new TreeNode(`Volume moyen: ${avgVolume.toLocaleString()}`));
+        volumeNode.addChild(new TreeNode(`Volume max: ${maxVolume.toLocaleString()}`));
+        if (minVolume < Infinity) {
+            volumeNode.addChild(new TreeNode(`Volume min: ${minVolume.toLocaleString()}`));
+        }
+    }
+
+    root.addChild(volumeNode);
+
     return root;
 }
 
@@ -338,6 +366,14 @@ function renderTree(node, isRoot = true) {
         status.className = `node-status ${node.data.status}`;
         status.textContent = node.data.status;
         content.appendChild(status);
+    }
+
+    // Add search volume badge if applicable
+    if (node.data && node.data.searchVolume && node.data.searchVolume.trim() !== '') {
+        const volume = document.createElement('span');
+        volume.className = 'node-volume';
+        volume.textContent = `🔍 ${node.data.searchVolume}`;
+        content.appendChild(volume);
     }
 
     div.appendChild(content);
