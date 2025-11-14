@@ -294,56 +294,82 @@ function buildTreeByHierarchy(data) {
         const products = items.filter(item => item.typology === 'product');
         const others = items.filter(item => item.typology !== 'category' && item.typology !== 'product');
 
-        // Create collection nodes
-        if (collections.length > 0) {
-            collections.forEach(collectionItem => {
-                const collectionUrl = collectionItem.url || collectionItem.principal_collection || '';
-                const collectionName = collectionItem.keyword || extractCollectionName(collectionUrl);
-                const searchVolume = collectionItem.search_volume || '';
-                const status = collectionItem.status || '';
+        // Build a map of all collection URLs (including from parent fields)
+        const collectionMap = new Map();
 
-                const collectionNode = new TreeNode(
-                    `📂 ${collectionName}`,
-                    { type: 'category', status: status, searchVolume: searchVolume, typology: 'category', item: collectionItem }
-                );
-
-                // Find products that belong to this collection
-                const collectionProducts = products.filter(product => {
-                    const productCollection = product.principal_collection || '';
-                    return productCollection === collectionUrl ||
-                           productCollection.includes(collectionItem.keyword?.toLowerCase().replace(/\s+/g, '-'));
+        // Add explicit collections
+        collections.forEach(col => {
+            const url = col.url || col.principal_collection || '';
+            if (url) {
+                collectionMap.set(url, {
+                    name: col.keyword || extractCollectionName(url),
+                    searchVolume: col.search_volume || '',
+                    status: col.status || '',
+                    item: col,
+                    explicit: true
                 });
+            }
+        });
 
-                // Add products to collection
-                collectionProducts.forEach(product => {
-                    const keyword = product.keyword || 'Sans titre';
-                    const productStatus = product.status || '';
-                    const productVolume = product.search_volume || '';
-                    const productTypology = product.typology || '';
-
-                    const productNode = new TreeNode(
-                        `📄 ${keyword}`,
-                        { type: 'product', status: productStatus, searchVolume: productVolume, typology: productTypology, item: product }
-                    );
-                    collectionNode.addChild(productNode);
-                });
-
-                // Only add collection if it has products
-                if (collectionNode.children.length > 0) {
-                    topicNode.addChild(collectionNode);
+        // Detect implicit collections from parent fields
+        products.forEach(product => {
+            const parents = parseJSONField(product.parent || '');
+            parents.forEach(parentUrl => {
+                if (!collectionMap.has(parentUrl)) {
+                    collectionMap.set(parentUrl, {
+                        name: extractCollectionName(parentUrl),
+                        searchVolume: '',
+                        status: '',
+                        item: null,
+                        explicit: false
+                    });
                 }
             });
-        }
+        });
 
-        // Add products without collection directly to topic
-        const orphanProducts = products.filter(product => {
-            const productCollection = product.principal_collection || '';
-            const belongsToCollection = collections.some(col => {
-                const collectionUrl = col.url || col.principal_collection || '';
-                return productCollection === collectionUrl ||
-                       productCollection.includes(col.keyword?.toLowerCase().replace(/\s+/g, '-'));
+        // Create collection nodes
+        collectionMap.forEach((collectionData, collectionUrl) => {
+            const collectionNode = new TreeNode(
+                `📂 ${collectionData.name}${!collectionData.explicit ? ' (référencée)' : ''}`,
+                {
+                    type: 'category',
+                    status: collectionData.status,
+                    searchVolume: collectionData.searchVolume,
+                    typology: 'category',
+                    item: collectionData.item
+                }
+            );
+
+            // Find products that belong to this collection using the parent field
+            const collectionProducts = products.filter(product => {
+                const parents = parseJSONField(product.parent || '');
+                return parents.includes(collectionUrl);
             });
-            return !belongsToCollection;
+
+            // Add products to collection
+            collectionProducts.forEach(product => {
+                const keyword = product.keyword || 'Sans titre';
+                const productStatus = product.status || '';
+                const productVolume = product.search_volume || '';
+                const productTypology = product.typology || '';
+
+                const productNode = new TreeNode(
+                    `📄 ${keyword}`,
+                    { type: 'product', status: productStatus, searchVolume: productVolume, typology: productTypology, item: product }
+                );
+                collectionNode.addChild(productNode);
+            });
+
+            // Only add collection if it has products
+            if (collectionNode.children.length > 0) {
+                topicNode.addChild(collectionNode);
+            }
+        });
+
+        // Add products without any parent
+        const orphanProducts = products.filter(product => {
+            const parents = parseJSONField(product.parent || '');
+            return parents.length === 0;
         });
 
         if (orphanProducts.length > 0) {
