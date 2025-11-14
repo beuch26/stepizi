@@ -253,6 +253,143 @@ function buildTreeByParent(data) {
     return root;
 }
 
+// Build tree by hierarchy (Topic -> Collection -> Product)
+function buildTreeByHierarchy(data) {
+    const root = new TreeNode('Architecture Hiérarchique');
+
+    // Group data by topic
+    const topics = {};
+    data.forEach(row => {
+        const topic = (row.topic || '').trim() || 'Sans topic';
+        if (!topics[topic]) {
+            topics[topic] = [];
+        }
+        topics[topic].push(row);
+    });
+
+    // Build hierarchy for each topic
+    Object.keys(topics).sort().forEach(topicName => {
+        const items = topics[topicName];
+        const displayName = topicName !== 'Sans topic'
+            ? topicName.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+            : topicName;
+
+        const topicNode = new TreeNode(
+            `🏷️ ${displayName}`,
+            { type: 'topic', count: items.length }
+        );
+
+        // Separate collections and products
+        const collections = items.filter(item => item.typology === 'category');
+        const products = items.filter(item => item.typology === 'product');
+        const others = items.filter(item => item.typology !== 'category' && item.typology !== 'product');
+
+        // Create collection nodes
+        if (collections.length > 0) {
+            collections.forEach(collectionItem => {
+                const collectionUrl = collectionItem.url || collectionItem.principal_collection || '';
+                const collectionName = collectionItem.keyword || extractCollectionName(collectionUrl);
+                const searchVolume = collectionItem.search_volume || '';
+                const status = collectionItem.status || '';
+
+                const collectionNode = new TreeNode(
+                    `📂 ${collectionName}`,
+                    { type: 'category', status: status, searchVolume: searchVolume, typology: 'category', item: collectionItem }
+                );
+
+                // Find products that belong to this collection
+                const collectionProducts = products.filter(product => {
+                    const productCollection = product.principal_collection || '';
+                    return productCollection === collectionUrl ||
+                           productCollection.includes(collectionItem.keyword?.toLowerCase().replace(/\s+/g, '-'));
+                });
+
+                // Add products to collection
+                collectionProducts.forEach(product => {
+                    const keyword = product.keyword || 'Sans titre';
+                    const productStatus = product.status || '';
+                    const productVolume = product.search_volume || '';
+                    const productTypology = product.typology || '';
+
+                    const productNode = new TreeNode(
+                        `📄 ${keyword}`,
+                        { type: 'product', status: productStatus, searchVolume: productVolume, typology: productTypology, item: product }
+                    );
+                    collectionNode.addChild(productNode);
+                });
+
+                // Only add collection if it has products
+                if (collectionNode.children.length > 0) {
+                    topicNode.addChild(collectionNode);
+                }
+            });
+        }
+
+        // Add products without collection directly to topic
+        const orphanProducts = products.filter(product => {
+            const productCollection = product.principal_collection || '';
+            const belongsToCollection = collections.some(col => {
+                const collectionUrl = col.url || col.principal_collection || '';
+                return productCollection === collectionUrl ||
+                       productCollection.includes(col.keyword?.toLowerCase().replace(/\s+/g, '-'));
+            });
+            return !belongsToCollection;
+        });
+
+        if (orphanProducts.length > 0) {
+            const orphanNode = new TreeNode(
+                `📦 Produits directs (${orphanProducts.length})`,
+                { type: 'orphans', count: orphanProducts.length }
+            );
+
+            orphanProducts.forEach(product => {
+                const keyword = product.keyword || 'Sans titre';
+                const status = product.status || '';
+                const searchVolume = product.search_volume || '';
+                const typology = product.typology || '';
+
+                const productNode = new TreeNode(
+                    `📄 ${keyword}`,
+                    { type: 'product', status: status, searchVolume: searchVolume, typology: typology, item: product }
+                );
+                orphanNode.addChild(productNode);
+            });
+
+            topicNode.addChild(orphanNode);
+        }
+
+        // Add other content types (guides, blogs, etc.)
+        if (others.length > 0) {
+            const otherNode = new TreeNode(
+                `📑 Autres contenus (${others.length})`,
+                { type: 'others', count: others.length }
+            );
+
+            others.forEach(item => {
+                const keyword = item.keyword || 'Sans titre';
+                const status = item.status || '';
+                const searchVolume = item.search_volume || '';
+                const typology = item.typology || '';
+
+                const itemNode = new TreeNode(
+                    `📄 ${keyword}`,
+                    { type: 'other', status: status, searchVolume: searchVolume, typology: typology, item: item }
+                );
+                otherNode.addChild(itemNode);
+            });
+
+            topicNode.addChild(otherNode);
+        }
+
+        // Only add topic if it has children
+        if (topicNode.children.length > 0) {
+            root.addChild(topicNode);
+        }
+    });
+
+    return root;
+}
+
 // Build statistics tree
 function buildStatsTree(data) {
     const root = new TreeNode('📊 Statistiques du Site');
@@ -450,6 +587,9 @@ function visualizeTree(viewType) {
             break;
         case 'topic':
             tree = buildTreeByTopic(csvData);
+            break;
+        case 'hierarchy':
+            tree = buildTreeByHierarchy(csvData);
             break;
         case 'parent':
             tree = buildTreeByParent(csvData);
